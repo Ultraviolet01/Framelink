@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Framelink — Investigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font-serif: "Newsreader", "Source Serif 4", "Tiempos Text", "Ivar Text", "Copernicus", "Charter", "Georgia", serif;
+    --bg:#101111; --panel:#151616; --panel2:#191a1a; --line:#292b2b;
+    --text:#f1f1ed; --muted:#8c908e; --soft:#c7cbc8; --thread:#55d6cf;
+    --green:#58c58b; --amber:#e1ad50; --red:#e36c68; --gray:#8e9391;
+    --input:#202221; --hover:#202322; --shadow:0 20px 60px rgba(0,0,0,.25);
+  }
+  [data-theme="light"]{
+    --bg:#f7f8f6; --panel:#fff; --panel2:#f1f3f1; --line:#dedfdb;
+    --text:#171918; --muted:#747a76; --soft:#3f4541; --thread:#119e99;
+    --green:#258354; --amber:#a96d0c; --red:#bf403b; --gray:#68706b;
+    --input:#f0f2ef; --hover:#eef1ee; --shadow:0 20px 60px rgba(22,30,25,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+  button,input,textarea{font:inherit}
+  button{color:inherit}
+  .app{height:100vh;display:grid;grid-template-columns:264px 1fr;grid-template-rows:54px 1fr}
+  .sidebar{grid-row:1/3;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-width:0}
+  .brand{height:54px;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid var(--line);font-family:var(--font-serif);font-size:20px;letter-spacing:-.3px;color:var(--text)}
+  .brandmark{width:21px;height:21px;margin-right:10px;position:relative}
+  .brandmark i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--thread)}
+  .brandmark i:nth-child(1){left:0;top:8px}.brandmark i:nth-child(2){left:8px;top:2px;background:var(--red)}.brandmark i:nth-child(3){left:15px;top:13px;background:var(--amber)}
+  .brandmark:before,.brandmark:after{content:"";position:absolute;height:1px;background:#67706d;transform-origin:left}
+  .brandmark:before{width:10px;left:4px;top:8px;transform:rotate(-32deg)}.brandmark:after{width:11px;left:8px;top:8px;transform:rotate(30deg)}
+  .new{margin:13px 12px 8px;border:0;background:transparent;text-align:left;padding:10px 11px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--soft);display:flex;align-items:center}
+  .new:hover{background:var(--hover)}
+  .new b{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:var(--hover);margin-right:8px;font-weight:400}
+  .section-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:12px 15px 7px}
+  .recent{overflow:auto;padding:0 8px;flex:1}
+  .item{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:transparent;text-align:left;color:var(--soft);padding:9px 9px;border-radius:7px;cursor:pointer;font-size:12px;margin-bottom:2px;transition:.15s}
+  .item span.text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:6px}
+  .item:hover{background:var(--hover);color:var(--text)}
+  .item.active{background:var(--hover);color:var(--text)}
+  .tag{font-family:ui-monospace,monospace;font-size:8px;border:1px solid currentColor;padding:2px 4px;border-radius:3px;margin-left:auto;opacity:.85;flex-shrink:0}
+  .tag.red{color:var(--red)}.tag.green{color:var(--green)}.tag.amber{color:var(--amber)}.tag.gray{color:var(--gray)}
+  .side-bottom{margin-top:auto;border-top:1px solid var(--line);padding:12px}
+  .free{font-size:11px;color:var(--muted);line-height:1.5;padding:8px}
+  .free strong{display:block;color:var(--soft);font-weight:500}
+  .topbar{grid-column:2;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;background:var(--bg);z-index:2}
+  .crumb{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:8px}
+  .crumb .dot{width:7px;height:7px;border-radius:50%;background:var(--thread);box-shadow:0 0 10px rgba(85,214,207,.35)}
+  .top-actions{margin-left:auto;display:flex;gap:7px;align-items:center}
+  .icon-btn{border:1px solid transparent;background:transparent;width:31px;height:31px;border-radius:7px;cursor:pointer;display:grid;place-items:center;color:var(--muted)}
+  .icon-btn:hover{background:var(--hover);color:var(--text)}
+  .mode-label{font-size:10px;margin-left:3px}
+  main{grid-column:2;min-width:0;position:relative;overflow:hidden}
+  .workspace{height:100%;display:flex;flex-direction:column;align-items:center}
+  .content{width:min(820px,calc(100% - 56px));height:100%;display:flex;flex-direction:column}
+  .welcome{margin:auto 0 20px;padding-top:35px}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.14em;color:var(--thread);text-transform:uppercase;margin-bottom:15px}
+  h1{font-family:var(--font-serif);font-size:39px;line-height:1.1;letter-spacing:-0.02em;font-weight:400;margin:0 0 11px;max-width:700px}
+  .subtitle{font-size:13px;line-height:1.65;color:var(--muted);max-width:620px;margin:0}
+  .composer-wrap{padding:0 0 17px;margin-top:auto}
+  .composer{border:1px solid #353837;background:var(--input);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}
+  textarea{display:block;width:100%;resize:none;border:0;outline:0;background:transparent;color:var(--text);padding:15px 17px 6px;min-height:65px;font-size:13px}
+  textarea::placeholder{color:#737976}
+  .composer-bar{height:40px;display:flex;align-items:center;padding:0 8px 7px}
+  .hint{font-size:10px;color:var(--muted);margin-left:8px}
+  .send{margin-left:auto;border:1px solid var(--line);background:var(--panel2);width:30px;height:30px;border-radius:7px;cursor:pointer;display:grid;place-items:center;color:var(--muted);transition:.15s}
+  .send.ready{background:var(--thread);border-color:var(--thread);color:#071817}
+  .legal{text-align:center;font-size:9px;color:var(--muted);padding-top:8px}
+  .chat{display:none;height:100%;overflow:auto;padding-top:28px;padding-bottom:20px}
+  .chat.visible{display:block}
+  .welcome.hidden{display:none}
+  .message{margin-bottom:28px}
+  .user-msg{font-size:14px;line-height:1.6;background:var(--panel);border:1px solid var(--line);padding:12px 15px;border-radius:10px;max-width:80%;margin-left:auto}
+  .answer{padding-left:0}
+  .answer-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .verdict{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;border:1px solid currentColor;padding:4px 7px;border-radius:4px;font-weight:600}
+  .v-red{color:var(--red);border-color:var(--red);background:rgba(227,108,104,.1)}
+  .v-green{color:var(--green);border-color:var(--green);background:rgba(88,197,139,.1)}
+  .v-amber{color:var(--amber);border-color:var(--amber);background:rgba(225,173,80,.1)}
+  .v-gray{color:var(--gray);border-color:var(--gray);background:rgba(142,147,145,.1)}
+  .answer-body{font-family:var(--font-serif);font-size:16px;line-height:1.72;letter-spacing:-0.005em;color:var(--text);margin:0 0 16px;white-space:pre-wrap}
+  .answer-body h3{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--thread);margin:14px 0 6px;letter-spacing:-0.01em}
+  .answer-body strong{font-weight:600;color:var(--text)}
+  .answer-body a{color:var(--thread);text-decoration:underline;text-underline-offset:3px}
+  .trace{border:1px solid var(--line);border-radius:9px;background:var(--panel);padding:14px}
+  .trace-title{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+  .nodes{display:flex;align-items:center;gap:6px;overflow-x:auto;padding-bottom:6px}
+  .node{border:1px solid var(--line);padding:8px 11px;border-radius:7px;min-width:max-content;font-size:11px;background:var(--panel2)}
+  .node b{display:block;font-size:8px;color:var(--thread);font-family:ui-monospace,monospace;margin-bottom:4px;font-weight:600;text-transform:uppercase}
+  .edge{width:25px;height:1px;background:var(--thread);position:relative;flex:0 0 25px}
+  .edge:after{content:"";position:absolute;right:0;top:-2px;border-left:4px solid var(--thread);border-top:2px solid transparent;border-bottom:2px solid transparent}
+  .sources{margin-top:14px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;display:flex;flex-wrap:wrap;gap:12px}
+  .sources a{color:var(--thread);text-decoration:none;display:inline-flex;align-items:center;gap:3px}
+  .sources a:hover{text-decoration:underline}
+  .loading-pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--thread);font-family:ui-monospace,monospace;padding:6px 12px;border-radius:20px;background:rgba(85,214,207,.08);border:1px solid rgba(85,214,207,.25)}
+  .loading-pill span.spinner{width:10px;height:10px;border:2px solid var(--thread);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:760px){
+    .app{grid-template-columns:0 1fr}.sidebar{display:none}.topbar{grid-column:2}.content{width:calc(100% - 28px)}h1{font-size:32px}.mode-label{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="brandmark"><i></i><i></i><i></i></span>Framelink</div>
+    <button class="new" onclick="resetChat()"><b>+</b>New investigation</button>
+    <div class="section-title">Investigations</div>
+    <div class="recent" id="recent">
+      <div class="empty-history" id="emptyHistory" style="padding:14px 10px;font-size:11px;color:var(--muted);line-height:1.5">No investigations yet.<br>Your searches will appear here.</div>
+    </div>
+    <div class="side-bottom">
+      <div class="free"><strong>Free to investigate.</strong>No account. No signup. Live real-time graph reasoning backed by HydraDB.</div>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="crumb"><span class="dot"></span><span>Investigator</span><span style="color:var(--muted)">/</span><span id="currentCrumb">New investigation</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" title="Admin Metrics Dashboard" onclick="window.open('/admin', '_blank')">⚙</button>
+      <button class="icon-btn" title="Toggle light/dark mode" onclick="toggleTheme()">☾</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="workspace">
+      <div class="content">
+        <section class="welcome" id="welcome">
+          <div class="eyebrow">Trace the claim. Follow the frame.</div>
+          <h1 id="welcomeTitle">What do you want to clarify?</h1>
+          <p class="subtitle" id="welcomeSub">Ask Framelink about a claim, person, source, or story. We’ll trace the connected evidence through the graph and tell you when the evidence isn’t enough.</p>
+        </section>
+
+        <section class="chat" id="chat"></section>
+
+        <div class="composer-wrap">
+          <div class="composer">
+            <textarea id="input" rows="2" placeholder="Ask about a claim, entity, source, or narrative…" oninput="syncSend()" onkeydown="handleKey(event)"></textarea>
+            <div class="composer-bar">
+              <span class="hint" style="margin-left:8px">No signup required · evidence is traced through HydraDB</span>
+              <button class="send" id="send" onclick="sendMessage()" title="Investigate">↑</button>
+            </div>
+          </div>
+          <div class="legal">Framelink is backed by 2,330+ graph nodes and 6,290+ relationships. Every verdict is accompanied by its evidence path.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const prompts = [
+  ["What do you want to clarify?", "What questions do you have for me?"],
+  ["What claim should we trace?", "What story are you trying to untangle?"],
+  ["What are you curious about?", "Which thread should we follow?"],
+  ["What should we investigate?", "What doesn't quite add up?"]
+];
+let promptIndex=0;
+setInterval(()=>{
+  if(document.getElementById('chat').classList.contains('visible')) return;
+  promptIndex=(promptIndex+1)%prompts.length;
+  document.getElementById('welcomeTitle').style.opacity=0;
+  setTimeout(()=>{
+    document.getElementById('welcomeTitle').textContent=prompts[promptIndex][0];
+    document.getElementById('welcomeTitle').style.opacity=1;
+  },180);
+},5200);
+
+function toggleTheme(){
+  const b=document.body;
+  b.dataset.theme=b.dataset.theme==='light'?'dark':'light';
+  document.querySelector('[title="Toggle light/dark mode"]').textContent=b.dataset.theme==='light'?'☀':'☾';
+}
+
+function usePrompt(text){
+  document.getElementById('input').value=text;
+  syncSend();
+  sendMessage();
+}
+
+function syncSend(){
+  document.getElementById('send').classList.toggle('ready',!!document.getElementById('input').value.trim());
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function resetChat(){
+  document.getElementById('chat').innerHTML='';
+  document.getElementById('chat').classList.remove('visible');
+  document.getElementById('welcome').classList.remove('hidden');
+  document.getElementById('input').value='';
+  document.getElementById('currentCrumb').textContent='New investigation';
+  syncSend();
+  document.querySelectorAll('.item').forEach(x=>x.classList.remove('active'));
+}
+
+async function sendMessage(){
+  const input=document.getElementById('input');
+  const text=input.value.trim();
+  if(!text) return;
+
+  const welcome=document.getElementById('welcome');
+  const chat=document.getElementById('chat');
+  welcome.classList.add('hidden');
+  chat.classList.add('visible');
+
+  document.getElementById('currentCrumb').textContent = text.length > 35 ? text.substring(0, 32) + '...' : text;
+
+  // Add User Message
+  const userMsg=document.createElement('div');
+  userMsg.className='message';
+  userMsg.innerHTML='<div class="user-msg">'+escapeHtml(text)+'</div>';
+  chat.appendChild(userMsg);
+
+  input.value='';
+  syncSend();
+
+  // Add Loading Indicator
+  const loadingMsg=document.createElement('div');
+  loadingMsg.className='message';
+  loadingMsg.id='loadingMsg';
+  loadingMsg.innerHTML=`
+    <div class="answer">
+      <div class="loading-pill"><span class="spinner"></span> Traversing HydraDB Graph & Evaluating Multi-Hop Provenance...</div>
+    </div>`;
+  chat.appendChild(loadingMsg);
+  chat.scrollTop=chat.scrollHeight;
+
+  try {
+    const res = await fetch('/api/v1/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: text, session_id: 'SESS-WEB-' + Date.now() })
+    });
+
+    const data = await res.json();
+    loadingMsg.remove();
+    renderAgentAnswer(text, data);
+  } catch (err) {
+    loadingMsg.remove();
+    renderErrorAnswer(text, err);
+  }
+}
+
+function renderAgentAnswer(query, data){
+  const chat=document.getElementById('chat');
+  const answer=document.createElement('div');
+  answer.className='message';
+
+  const verdict = (data.verdict || 'UNVERIFIED').toUpperCase();
+  let verdictClass = 'v-amber';
+  let badgeText = data.raw_verdict ? data.raw_verdict.toUpperCase() : verdict.replace(/_/g, ' ');
+
+  if (verdict.includes('EXPLORATION')) {
+    verdictClass = 'v-gray';
+    badgeText = 'GRAPH EXPLORATION';
+  } else if (verdict.includes('UNGROUNDED')) {
+    verdictClass = 'v-gray';
+    badgeText = 'ABSTAIN · NO EVIDENCE';
+  } else if (verdict.includes('ABSTAIN')) {
+    verdictClass = 'v-gray';
+    badgeText = 'ABSTAIN · CONFLICT DETECTED';
+  } else if (verdict.includes('FALSE') || verdict.includes('BASELESS') || verdict.includes('UNSUPPORTED') || verdict.includes('CONTRADICTED')) {
+    verdictClass = 'v-red';
+  } else if (verdict.includes('CORROBORATED') || verdict.includes('TRUE') || verdict.includes('VERIFIED')) {
+    verdictClass = 'v-green';
+  } else if (verdict.includes('MISLEADING') || verdict.includes('DISTORTS') || verdict.includes('FLAWED') || verdict.includes('CONTEXT')) {
+    verdictClass = 'v-amber';
+  }
+
+  const toolOutputs = data.tool_outputs || {};
+  const pathExplainer = toolOutputs.PathExplainer || {};
+  const conflictDetector = toolOutputs.ConflictDetector || {};
+  const conflicts = data.conflicts_found || conflictDetector.conflicts || [];
+  const toolsUsed = data.tools_triggered || [];
+
+  const explanation = data.explanation || 'Evidence analyzed across the graph substrate.';
+  const formattedExplanation = formatMarkdownText(explanation);
+
+  const fcUrl = pathExplainer.fact_check_url || '';
+  const srcUrl = pathExplainer.source_url || '';
+
+  // Multi-hop Graph Provenance Thread
+  let nodesHtml = '';
+  if (verdict.includes('ABSTAIN')) {
+    nodesHtml = `
+      <div class="node"><b>QUERY</b>${escapeHtml(query.substring(0, 30))}...</div>
+      <div class="edge"></div>
+      <div class="node"><b>CONFLICT DETECTOR</b>Grounded Audit</div>
+      <div class="edge"></div>
+      <div class="node"><b>EVIDENCE TENSION</b>Active Contradiction</div>
+      <div class="edge"></div>
+      <div class="node"><b>VERDICT</b>Abstain</div>
+    `;
+  } else if (verdict.includes('EXPLORATION')) {
+    nodesHtml = `
+      <div class="node"><b>QUERY</b>${escapeHtml(query.substring(0, 25))}...</div>
+      <div class="edge"></div>
+      <div class="node"><b>TRAVERSAL</b>Entity/Publisher Search</div>
+      <div class="edge"></div>
+      <div class="node"><b>RESULTS</b>Grounded Trails</div>
+    `;
+  } else {
+    nodesHtml = `
+      <div class="node"><b>QUERY</b>${escapeHtml(query.substring(0, 25))}...</div>
+      <div class="edge"></div>
+      <div class="node"><b>CANDIDATE</b>${escapeHtml(pathExplainer.claim_id || 'Claim Node')}</div>
+      <div class="edge"></div>
+      <div class="node"><b>FACT-CHECK</b>ClaimReview</div>
+      <div class="edge"></div>
+      <div class="node"><b>VERDICT</b>${escapeHtml(badgeText)}</div>
+    `;
+  }
+
+  // Source links
+  let sourcesHtml = 'Source trail: ';
+  const links = [];
+  if (fcUrl) links.push(`<a href="${escapeHtml(fcUrl)}" target="_blank" rel="noreferrer">Fact-check investigation report ↗</a>`);
+  if (srcUrl) links.push(`<a href="${escapeHtml(srcUrl)}" target="_blank" rel="noreferrer">Primary claim appearance ↗</a>`);
+  links.push(`<span>HydraDB Graph Substrate</span>`);
+  sourcesHtml += links.join(' · ');
+
+  let sourcesMainHtml = '';
+  if (fcUrl || srcUrl) {
+    const mainLinks = [];
+    if (fcUrl) mainLinks.push(`<a href="${escapeHtml(fcUrl)}" target="_blank" rel="noreferrer" style="color:var(--thread); text-decoration:underline;">Fact-check report ↗</a>`);
+    if (srcUrl) mainLinks.push(`<a href="${escapeHtml(srcUrl)}" target="_blank" rel="noreferrer" style="color:var(--thread); text-decoration:underline;">Primary source ↗</a>`);
+    sourcesMainHtml = `<div style="margin-bottom:14px; font-size:13px; color:var(--muted);"><strong>Links:</strong> ${mainLinks.join(' · ')}</div>`;
+  }
+
+  let techDetailsHtml = '';
+  if (data.technical_details) {
+    techDetailsHtml = `<div style="margin-top:10px; font-size:12px; font-family:ui-monospace,monospace; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:10px; white-space:pre-wrap;">${formatMarkdownText(data.technical_details)}</div>`;
+  }
+
+  answer.innerHTML = `
+    <div class="answer">
+      <div class="answer-head">
+        <span class="verdict ${verdictClass}">${escapeHtml(badgeText)}</span>
+      </div>
+      <div class="answer-body">${formattedExplanation}</div>
+      ${sourcesMainHtml}
+      <details class="trace" style="margin-top:14px; border:1px solid var(--line); border-radius:9px; background:var(--panel); padding:10px 14px;">
+        <summary class="trace-title" style="cursor:pointer; outline:none; font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.1em; color:var(--muted); text-transform:uppercase; user-select:none;">View technical details</summary>
+        <div style="margin-top:12px; font-size:12px; color:var(--muted); line-height:1.6;">
+          <div style="font-family:ui-monospace,monospace; margin-bottom:8px;">
+            <strong>Trace:</strong> TRACE COMPLETE · ${toolsUsed.length} SPECIALIST TOOLS (${toolsUsed.join(', ')})
+          </div>
+          ${techDetailsHtml}
+          <div class="trace-title" style="margin-top:12px; margin-bottom:8px; font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase;">HydraDB Evidence Thread & Provenance</div>
+          <div class="nodes" style="margin-bottom:12px;">${nodesHtml}</div>
+          <div class="sources" style="border-top:1px solid var(--line); padding-top:10px; margin-top:8px;">${sourcesHtml}</div>
+        </div>
+      </details>
+    </div>`;
+
+  chat.appendChild(answer);
+  chat.scrollTop = chat.scrollHeight;
+
+  // Add to sidebar history
+  addInvestigationToSidebar(query, badgeText, verdictClass);
+}
+
+function addInvestigationToSidebar(query, badgeText, verdictClass){
+  const emptyHist = document.getElementById('emptyHistory');
+  if (emptyHist) emptyHist.remove();
+
+  const recent = document.getElementById('recent');
+  document.querySelectorAll('.item').forEach(x => x.classList.remove('active'));
+
+  let tagColor = 'amber';
+  if (verdictClass.includes('red')) tagColor = 'red';
+  else if (verdictClass.includes('green')) tagColor = 'green';
+  else if (verdictClass.includes('gray')) tagColor = 'gray';
+
+  const btn = document.createElement('button');
+  btn.className = 'item active';
+  btn.onclick = () => usePrompt(query);
+  
+  const shortText = query.length > 32 ? query.substring(0, 30) + '...' : query;
+  const shortTag = badgeText.length > 12 ? badgeText.split(' ')[0] : badgeText;
+
+  btn.innerHTML = `<span class="text">${escapeHtml(shortText)}</span><span class="tag ${tagColor}">${escapeHtml(shortTag)}</span>`;
+  recent.prepend(btn);
+}
+
+function renderErrorAnswer(query, error){
+  const chat=document.getElementById('chat');
+  const answer=document.createElement('div');
+  answer.className='message';
+  answer.innerHTML = `
+    <div class="answer">
+      <div class="answer-head"><span class="verdict v-red">ERROR</span></div>
+      <p>Failed to query backend: ${escapeHtml(error.message)}</p>
+    </div>`;
+  chat.appendChild(answer);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function formatMarkdownText(text){
+  if (!text) return '';
+  let clean = text.replace(/[\ufffd\u0080-\u009f]/g, '');
+  clean = clean.replace(/""/g, '"');
+  clean = escapeHtml(clean);
+  clean = clean.replace(/### (.*?)\n/g, '<h3 style="font-size:15px;margin:14px 0 6px;color:var(--thread)">$1</h3>');
+  clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  clean = clean.replace(/`([^`]+)`/g, '<code style="font-family:ui-monospace,monospace;font-size:12px;background:var(--panel2);padding:2px 5px;border-radius:4px;border:1px solid var(--line)">$1</code>');
+  clean = clean.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer" style="color:var(--thread);text-decoration:underline">$1 ↗</a>');
+  return clean;
+}
+
+function escapeHtml(s){
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+</script>
+</body>
+</html>

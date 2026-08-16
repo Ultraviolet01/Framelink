@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Environment credentials
+.env
+.env.local
+.graph_auth_token
+
+# Build output
+dist/
+build/
+.pytest_cache/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Large dataset feeds
+data/raw/
+*.json.gz
+*.gz
+
+# Non-core files and directories
+.agents/
+scratch_*.py
+datacommons_download_page.html
+sample_feed.txt
+LICENSE
+backend/
+charts/
+
+
