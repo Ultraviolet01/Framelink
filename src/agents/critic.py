@@ -85,8 +85,29 @@ def review_planner_output(planner_result: Dict[str, Any]) -> Dict[str, Any]:
                     return "No claim details found."
                 text = node.get("content") or node.get("title", "")
                 pub = node.get("publisher", "a fact-checker")
-                verdict = node.get("status", "Unverified")
-                rating_exp = node.get("rating_explanation") or "No explanation details provided."
+                
+                # 1. Try to find the connected FactCheck node in the graph
+                fact_check_node = None
+                for e in hydradb_client.edges.values():
+                    if e.get("type") == "CHECKS" and e.get("target") == node["id"]:
+                        fc_node = hydradb_client.nodes.get(e.get("source"))
+                        if fc_node and fc_node.get("label") == "FactCheck":
+                            fact_check_node = fc_node
+                            break
+                
+                verdict = (fact_check_node.get("verdict") if fact_check_node else "") or node.get("status", "Unverified")
+                rating_exp = (fact_check_node.get("rating_explanation") if fact_check_node else "") or node.get("rating_explanation", "")
+                
+                # 2. Extract explanation from verdict if it is a long status description (like in CLM-849A3CDE)
+                if len(verdict) > 30 and (not rating_exp or rating_exp == "No explanation details provided."):
+                    rating_exp = verdict
+                    # Extract the first word or short rating from the verdict
+                    verdict = verdict.split(".")[0]
+                
+                # 3. Clean up rating_exp or fallback to claim content description
+                if not rating_exp or rating_exp.strip() == "":
+                    rating_exp = f"No additional explanation was provided in the source report, but the claim asserts that: \"{text}\""
+                
                 url = node.get("url", "")
                 link = f" [{pub} investigation ↗]({url})" if url else f" ({pub})"
                 return f'"{text}" (Verdict: {verdict}. Finding: "{rating_exp}"{link})'
