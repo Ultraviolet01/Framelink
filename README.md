@@ -94,50 +94,55 @@ Framelink uses a **LangGraph State Graph Planner** ([`src/agents/planner.py`](fi
 
 ```mermaid
 flowchart TD
-    User([User Query]) --> Planner[src/agents/planner.py: LangGraph Planner & Tool Router]
+    %% Main Flow
+    User([User Query]) --> Planner[src/agents/planner.py <br> LangGraph Planner & Tool Router]
     
-    subgraph Specialists [10 Specialist Tools]
+    %% Planner routes to Specialists
+    subgraph Specialists [Specialist Tools Layer]
+        direction LR
         SCF[1. SimilarClaimFinder]
         CD[5. ConflictDetector]
         PE[10. PathExplainer]
-        OtherTools[Other Specialist Tools 2-4, 6-9]
+        Other[Other Specialist Tools 2-4, 6-9]
     end
-
-    Planner -->|Orchestrate Tool Executions| Specialists
+    Planner -->|1. Route & Orchestrate| Specialists
     
-    %% Bidirectional querying to HydraDB Database
-    Specialists <-->|Cypher Queries & Graph Results| Graph[(HydraDB Database Substrate)]
+    %% Specialists query database
+    subgraph DB [Database Layer]
+        Client[src/graph/client.py <br> HydraDB Client]
+        Substrate[(HydraDB Database Substrate)]
+        Client <-->|Cypher Connection| Substrate
+    end
+    Specialists <-->|2. Cypher Queries & Graph Results| Client
     
-    %% Return structured evaluations back to Planner
-    SCF -->|Similarity Candidates| Planner
-    CD -->|Evaluated Conflict Status| Planner
-    PE -->|Grounded Evidence Trail| Planner
-    OtherTools -->|Context/Revision Trails| Planner
+    %% Results returned to Planner for Critic
+    Planner -->|3. Compile Result| Critic[src/agents/critic.py <br> Output Review Critic]
     
-    Planner -->|Aggregate Raw Result| Critic[src/agents/critic.py: Output Review Critic]
-    
-    subgraph CriticAudits [Critic Audits & Verdict Resolution]
+    %% Critic evaluates and overrides
+    subgraph CriticAudits [Critic Verdict Resolution]
+        direction TB
         ConflictCheck{Active Conflict?}
         GroundingCheck{Grounded path exists?}
+        
+        ConflictCheck -->|Yes| ForcedAbstain[ABSTAIN_CONTRADICTORY_EVIDENCE <br> Plain English comparison of opposing claims]
+        ConflictCheck -->|No| GroundingCheck
+        
+        GroundingCheck -->|No| LowConfidence[ABSTAIN_UNGROUNDED <br> Plain English no-evidence notice]
+        GroundingCheck -->|Yes| ConfidentVerdict[CONFIDENT_VERDICT <br> Plain English verdict explanation]
     end
+    Critic --> CriticAudits
     
-    Critic --> ConflictCheck
-    ConflictCheck -->|Yes| ForcedAbstain[ABSTAIN_CONTRADICTORY_EVIDENCE <br> Plain English comparison of opposing claims]
-    ConflictCheck -->|No| GroundingCheck
-    
-    GroundingCheck -->|No| LowConfidence[ABSTAIN_UNGROUNDED <br> Plain English no-evidence notice]
-    GroundingCheck -->|Yes| ConfidentVerdict[CONFIDENT_VERDICT <br> Plain English verdict explanation]
-    
+    %% Outputs map to UI
     subgraph UI [Frontend User Interface]
+        direction TB
         MainUI[Main Chat Feed <br> Plain English explanation & prominent URLs]
         TechUI[Collapsible Trace <br> View technical details: node IDs, edges, tools logs]
+        MainUI --- TechUI
     end
     
     ForcedAbstain --> UI
     LowConfidence --> UI
     ConfidentVerdict --> UI
-    
-    MainUI --- TechUI
 ```
 
 ### 🔍 Output Review Critic & Abstention Engine
