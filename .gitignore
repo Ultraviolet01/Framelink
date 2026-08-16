@@ -33,5 +33,8 @@ sample_feed.txt
 LICENSE
 backend/
 charts/
+mcp_config.json
+tests/
+
 
 
