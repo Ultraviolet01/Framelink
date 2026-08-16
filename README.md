@@ -90,6 +90,57 @@ VeritasGraph Enterprise uses a **LangGraph State Graph Planner** ([`src/agents/p
 9. **`Statistics/OpenCypherFallback`**: System node statistics & fallback Cypher executor.
 10. **`PathExplainer`**: Grounded natural language explanations with real path payloads (Always On).
 
+### 📐 System Architecture Diagram
+
+```mermaid
+flowchart TD
+    User([User Query]) --> Planner[src/agents/planner.py: LangGraph Planner & Tool Router]
+    
+    subgraph Specialists [10 Specialist Tools]
+        SCF[1. SimilarClaimFinder]
+        CD[5. ConflictDetector]
+        PE[10. PathExplainer]
+        OtherTools[Other Specialist Tools 2-4, 6-9]
+    end
+
+    Planner --> SCF
+    Planner --> CD
+    Planner --> PE
+    Planner -.-> OtherTools
+    
+    SCF --> |Retrieve Candidates| CD
+    CD --> |Query Contradicts Edges| Graph[(HydraDB Graph Substrate)]
+    PE --> |Traverse Multi-Hop Paths| Graph
+    
+    CD --> |Conflict Status| Planner
+    PE --> |Grounded Path & Verdict| Planner
+    
+    Planner --> |Raw Result| Critic[src/agents/critic.py: Output Review Critic]
+    
+    subgraph CriticAudits [Critic Audits & Verdict Resolution]
+        ConflictCheck{Active Conflict?}
+        GroundingCheck{Grounded path exists?}
+    end
+    
+    Critic --> ConflictCheck
+    ConflictCheck -->|Yes| ForcedAbstain[ABSTAIN_CONTRADICTORY_EVIDENCE <br> Plain English comparison of opposing claims]
+    ConflictCheck -->|No| GroundingCheck
+    
+    GroundingCheck -->|No| LowConfidence[ABSTAIN_UNGROUNDED <br> Plain English no-evidence notice]
+    GroundingCheck -->|Yes| ConfidentVerdict[CONFIDENT_VERDICT <br> Plain English verdict explanation]
+    
+    subgraph UI [Frontend User Interface]
+        MainUI[Main Chat Feed <br> Plain English explanation & prominent URLs]
+        TechUI[Collapsible Trace <br> View technical details: node IDs, edges, tools logs]
+    end
+    
+    ForcedAbstain --> UI
+    LowConfidence --> UI
+    ConfidentVerdict --> UI
+    
+    MainUI --- TechUI
+```
+
 ### 🔍 Output Review Critic & Abstention Engine
 - **Critic (`src/agents/critic.py`)**: Audits planner output before returning to client. Catches un-flagged conflicts and forces explicit abstention compliance.
 - **Abstention Engine (`src/retrieval/abstention.py`)**: Triggers `ABSTAIN_CONTRADICTORY_EVIDENCE` or `ABSTAIN_LOW_CONFIDENCE`, explicitly naming conflicting nodes (e.g. `['CLM-101', 'CNF-301']`) and edges (`['CONTRADICTS']`).
