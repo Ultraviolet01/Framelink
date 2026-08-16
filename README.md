@@ -103,19 +103,18 @@ flowchart TD
         OtherTools[Other Specialist Tools 2-4, 6-9]
     end
 
-    Planner --> SCF
-    Planner --> CD
-    Planner --> PE
-    Planner -.-> OtherTools
+    Planner -->|Orchestrate Tool Executions| Specialists
     
-    SCF --> |Retrieve Candidates| CD
-    CD --> |Query Contradicts Edges| Graph[(HydraDB Graph Substrate)]
-    PE --> |Traverse Multi-Hop Paths| Graph
+    %% Bidirectional querying to HydraDB Database
+    Specialists <-->|Cypher Queries & Graph Results| Graph[(HydraDB Database Substrate)]
     
-    CD --> |Conflict Status| Planner
-    PE --> |Grounded Path & Verdict| Planner
+    %% Return structured evaluations back to Planner
+    SCF -->|Similarity Candidates| Planner
+    CD -->|Evaluated Conflict Status| Planner
+    PE -->|Grounded Evidence Trail| Planner
+    OtherTools -->|Context/Revision Trails| Planner
     
-    Planner --> |Raw Result| Critic[src/agents/critic.py: Output Review Critic]
+    Planner -->|Aggregate Raw Result| Critic[src/agents/critic.py: Output Review Critic]
     
     subgraph CriticAudits [Critic Audits & Verdict Resolution]
         ConflictCheck{Active Conflict?}
