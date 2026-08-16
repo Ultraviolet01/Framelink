@@ -4,7 +4,7 @@
 > **Open Source Graph Database**: [HydraDB](https://github.com/hydra-db/hydradb) (Self-Hosted Local `graph-node` Engine)  
 > **License**: [MIT License](LICENSE)  
 > **Backend Stack**: Python 3.14 (FastAPI), LangGraph, Anthropic Claude API (`claude-haiku-4-5-20251001`), `sentence-transformers` (`all-MiniLM-L6-v2`), FastMCP / MCP SDK, Ariadne GraphQL, SSE Streaming  
-> **Frontend Stack**: Public Investigation Portal (`/chat`), Admin Metrics Dashboard (`/admin`)  
+> **Frontend Stack**: Public Investigation Portal (`/chat`)
 
 ---
 
@@ -156,7 +156,6 @@ All 4 API protocols are independently callable and return consistent verdicts fo
 - **SSE Streaming API** ([`src/api/streaming.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/streaming.py)): `/api/v1/stream` real-time EventSource streaming tool events (`event: tool_call`, `event: explanation`).
 - **FastMCP Tool Server** ([`src/api/mcp_server.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/mcp_server.py)): Exposes `investigate_claim` tool for external AI agents.
 - **Public Chat Portal** ([`web/chat/index.html`](file:///c:/Users/USER/Downloads/Framelink/web/chat/index.html)): Real-time claim investigation UI at `http://127.0.0.1:8000/chat`.
-- **Admin Dashboard** ([`web/admin/index.html`](file:///c:/Users/USER/Downloads/Framelink/web/admin/index.html)): Real-time graph node/edge metrics & eval benchmark scores at `http://127.0.0.1:8000/admin`.
 
 ---
 
@@ -225,7 +224,6 @@ $env:PYTHONPATH="." ; & "C:\Users\USER\.local\bin\python3.14.exe" -m src.api.mai
 
 Access the interfaces:
 - **Public Chat Portal**: `http://127.0.0.1:8000/chat`
-- **Admin Metrics Dashboard**: `http://127.0.0.1:8000/admin`
 - **GraphQL Console**: `http://127.0.0.1:8000/graphql`
 - **REST API Interactive Docs**: `http://127.0.0.1:8000/docs`
 

@@ -35,6 +35,8 @@ backend/
 charts/
 mcp_config.json
 tests/
+web/admin/
+
 
 
 

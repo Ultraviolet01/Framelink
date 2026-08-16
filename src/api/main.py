@@ -46,7 +46,6 @@ async def startup_event():
 # Serve Web UIs
 chat_ui_primary = "framelink-chat-ui(2).html"
 chat_ui_path = os.path.join("web", "chat", "index.html")
-admin_ui_path = os.path.join("web", "admin", "index.html")
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/chat", response_class=HTMLResponse)
@@ -56,13 +55,6 @@ async def serve_chat():
             with open(p, "r", encoding="utf-8") as f:
                 return f.read()
     return "<h1>Framelink Investigator Portal</h1>"
-
-@app.get("/admin", response_class=HTMLResponse)
-async def serve_admin():
-    if os.path.exists(admin_ui_path):
-        with open(admin_ui_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return "<h1>Framelink Admin Dashboard</h1>"
 
 if __name__ == "__main__":
     import uvicorn
