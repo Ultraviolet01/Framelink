@@ -1,5 +1,5 @@
 /**
- * VeritasGraph Enterprise — HydraDB Client & Query Engine
+ * Framelink — HydraDB Client & Query Engine
  * Interacts with HydraDB context graph substrate.
  * Executes Cypher graph traversals, conflict detection, and path explanations.
  */

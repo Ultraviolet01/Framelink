@@ -1,5 +1,5 @@
 /**
- * VeritasGraph Enterprise — HydraDB Ontology Schema Definitions
+ * Framelink — HydraDB Ontology Schema Definitions
  * Track 01: Enterprise Context / Fact-Checking Claim Ontology
  */
 

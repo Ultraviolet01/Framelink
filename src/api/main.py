@@ -14,7 +14,7 @@ from src.api.streaming import router as streaming_router
 from src.api.graphql_schema import graphql_app
 
 app = FastAPI(
-    title="VeritasGraph Enterprise (Framelink) API",
+    title="Framelink API",
     description="Multi-Protocol Enterprise Graph Fact-Checking Engine backed by HydraDB",
     version="3.0.0"
 )
@@ -62,7 +62,7 @@ async def serve_admin():
     if os.path.exists(admin_ui_path):
         with open(admin_ui_path, "r", encoding="utf-8") as f:
             return f.read()
-    return "<h1>VeritasGraph Enterprise Admin Dashboard</h1>"
+    return "<h1>Framelink Admin Dashboard</h1>"
 
 if __name__ == "__main__":
     import uvicorn

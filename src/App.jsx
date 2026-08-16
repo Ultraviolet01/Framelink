@@ -97,7 +97,7 @@ export default function App() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold tracking-tight text-white">VeritasGraph Enterprise</h1>
+              <h1 className="text-base font-bold tracking-tight text-white">Framelink</h1>
               <span className="text-[10px] font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded font-semibold">
                 Track 01 • Enterprise Context
               </span>
@@ -348,7 +348,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 px-6 py-4 mt-8 bg-slate-950/60 text-center text-xs text-slate-500 font-mono">
-        VeritasGraph Enterprise • Powered by <a href="https://github.com/hydra-db/hydradb" target="_blank" rel="noreferrer" className="text-indigo-400 underline">HydraDB</a> • Released under MIT License
+        Framelink • Powered by <a href="https://github.com/hydra-db/hydradb" target="_blank" rel="noreferrer" className="text-indigo-400 underline">HydraDB</a> • Released under MIT License
       </footer>
     </div>
   );

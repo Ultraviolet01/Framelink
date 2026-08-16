@@ -15,7 +15,7 @@ In enterprise compliance, ESG auditing, and financial risk governance, verifying
 - **Relational databases cannot efficiently traverse multi-hop provenance chains** connecting claims to corporate entities, narrative frames, third-party satellite audits, and primary SEC/EPA filings.
 - **Static models lack temporal revision awareness**, treating superseded corporate statements as active facts.
 
-**VeritasGraph Enterprise (Framelink)** solves these challenges by combining **HydraDB's self-hosted graph engine** with a multi-tool **LangGraph agent orchestration pipeline**, a 5-component weighted path ranker, an output review critic, and explicit threshold abstention logic.
+**Framelink** solves these challenges by combining **HydraDB's self-hosted graph engine** with a multi-tool **LangGraph agent orchestration pipeline**, a 5-component weighted path ranker, an output review critic, and explicit threshold abstention logic.
 
 ---
 
@@ -77,7 +77,7 @@ curl -X POST "http://127.0.0.1:8443/v1/graphs/default/query" \
 
 ## 🤖 Agent Workflow Architecture & 10 Specialist Tools
 
-VeritasGraph Enterprise uses a **LangGraph State Graph Planner** ([`src/agents/planner.py`](file:///c:/Users/USER/Downloads/Framelink/src/agents/planner.py)) that dynamically routes multi-part queries across a 10 specialist tool roster:
+Framelink uses a **LangGraph State Graph Planner** ([`src/agents/planner.py`](file:///c:/Users/USER/Downloads/Framelink/src/agents/planner.py)) that dynamically routes multi-part queries across a 10 specialist tool roster:
 
 1. **`SimilarClaimFinder`**: 384-dim vector cosine candidate search.
 2. **`NarrativeContextExpander`**: Multi-hop OpenCypher narrative frame expansion.
