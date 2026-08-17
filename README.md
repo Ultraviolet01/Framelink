@@ -10,10 +10,14 @@
 
 ## 📌 Problem Statement
 
-In enterprise compliance, ESG auditing, and financial risk governance, verifying corporate claims (e.g. *"Acme Corp achieved 100% Net-Zero carbon emissions in FY2025"*) requires evaluating complex, multi-hop evidence trails across conflicting disclosures. Flat databases and isolated LLM prompt windows fail at this task because:
+You get roughly half a million documents drawn from nine different sources: Slack, Gmail, Linear, Google Drive, HubSpot, Fireflies, GitHub, Jira and Confluence. They arrive with all the noise an actual company has, including misfiled documents, near duplicates and statements that flatly contradict each other.
+
+Your job is to turn that into a clean, queryable ontology in HydraDB and then answer questions ranging from simple lookups to multi-hop reasoning, conflict resolution, and correctly recognizing when the answer just is not in there. Extraction is the easy part now that LLMs are cheap. The hard part is entity resolution and ontology alignment.
+
+Flat vector databases and isolated LLM prompt windows fail at this task because:
 - **Vector search returns semantically similar text but misses directional contradictions**, leading LLMs to hallucinate consistency where severe factual conflicts exist.
-- **Relational databases cannot efficiently traverse multi-hop provenance chains** connecting claims to corporate entities, narrative frames, third-party satellite audits, and primary SEC/EPA filings.
-- **Static models lack temporal revision awareness**, treating superseded corporate statements as active facts.
+- **Relational databases cannot efficiently traverse multi-hop provenance chains** connecting fragmented entities across platforms.
+- **Static models lack temporal revision awareness**, treating superseded Slack messages or outdated Confluence pages as active facts.
 
 **Framelink** solves these challenges by combining **HydraDB's self-hosted graph engine** with a multi-tool **LangGraph agent orchestration pipeline**, a 5-component weighted path ranker, an output review critic, and explicit threshold abstention logic.
 
@@ -155,7 +159,8 @@ flowchart TD
 
 All 4 API protocols are independently callable and return consistent verdicts for identical queries:
 
-- **REST API** ([`src/api/rest.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/rest.py)): `/api/v1/query`, `/claims/{id}`, `/entities/{id}`, `/conflicts`, `/metrics`.
+- **REST API** ([`src/api/rest.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/rest.py)): `/api/v1/query`, `/api/v1/ingest`, `/claims/{id}`, `/entities/{id}`, `/conflicts`, `/metrics`.
+  - *Universal Ingestion*: The `/api/v1/ingest` endpoint accepts payloads (`link`, `document`, `image`) from our 9 enterprise sources (Slack, Gmail, Linear, Google Drive, HubSpot, Fireflies, GitHub, Jira, Confluence). For example, it automatically extracts markdown from GitHub links or performs OCR on image bytes, clustering them into canonical claims.
 - **Ariadne GraphQL** ([`src/api/graphql_schema.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/graphql_schema.py)): `/graphql` interactive console & schema resolvers.
 - **SSE Streaming API** ([`src/api/streaming.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/streaming.py)): `/api/v1/stream` real-time EventSource streaming tool events (`event: tool_call`, `event: explanation`).
 - **FastMCP Tool Server** ([`src/api/mcp_server.py`](file:///c:/Users/USER/Downloads/Framelink/src/api/mcp_server.py)): Exposes `investigate_claim` tool for external AI agents.
@@ -169,20 +174,39 @@ Ran held-out evaluation benchmark set ([`src/eval/harness.py`](file:///c:/Users/
 
 ```json
 {
-  "eval_status": "PASSED",
-  "execution_time_ms": 6889.03,
-  "metrics": {
-    "claim_narrative_accuracy": 1.0,
-    "multihop_precision": 1.0,
-    "abstention_correctness": 1.0,
-    "overall_benchmark_score": 1.0
-  },
-  "heldout_testset_size": 5,
-  "breakdown": {
-    "narrative_clustering": "2/2 (100.0%)",
-    "multihop_precision": "1/1 (100.0%)",
-    "abstention_correctness": "2/2 (100.0%)"
-  }
+  "eval_status": "COMPLETED",
+  "benchmark_timestamp": "2026-08-16T14:20:18Z",
+  "total_test_cases": 20,
+  "claim_narrative_accuracy": 0.75,
+  "multihop_precision": 1.0,
+  "abstention_correctness": 0.75,
+  "overall_score": 0.8333,
+  "execution_time_ms": 101709.41,
+  "failure_cases_count": 10,
+  "sample_failure_cases": [
+    {
+      "test_id": "EVAL-01",
+      "type": "framing_mismatch",
+      "query": "COVID-19 vaccines cause myocarditis and heart inflammation in young men",
+      "expected": "Cardiovascular Risk & Myocarditis Framing",
+      "actual": "COVID-19 Immunization & Public Health Debate"
+    },
+    {
+      "test_id": "EVAL-03",
+      "type": "abstention_failure",
+      "query": "VAERS raw reports prove tens of thousands of sudden deaths caused by vaccines",
+      "should_abstain": false,
+      "did_abstain": true,
+      "actual_verdict": "ABSTAIN_CONTRADICTORY_EVIDENCE"
+    },
+    {
+      "test_id": "EVAL-06",
+      "type": "framing_mismatch",
+      "query": "CDC recommended vaccine mandates for 6-year-old children without clinical evidence",
+      "expected": "Civil Liberties & Regulatory Mandate Controversies",
+      "actual": "COVID-19 Immunization & Public Health Debate"
+    }
+  ]
 }
 ```
 

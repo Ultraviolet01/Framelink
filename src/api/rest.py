@@ -17,6 +17,20 @@ class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = "SESS-REST-01"
 
+class IngestRequest(BaseModel):
+    payload_type: str # 'link', 'document', or 'image'
+    source_system: str
+    content: str
+
+@router.post("/ingest")
+async def api_ingest(req: IngestRequest):
+    """Universal ingestion for links, docs, and images from enterprise sources"""
+    from src.ingest.universal_parser import ingest_universal_payload
+    try:
+        return ingest_universal_payload(req.payload_type, req.source_system, req.content)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/query")
 async def api_query(req: QueryRequest):
     """Executes dynamic agent planner query across HydraDB graph substrate"""

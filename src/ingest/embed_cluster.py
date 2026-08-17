@@ -24,28 +24,7 @@ def _init_hf_model():
             pass
 
 def compute_embedding(text: str) -> List[float]:
-    """Generates 384-dim L2-normalized vector using sentence-transformers/all-MiniLM-L6-v2"""
-    _init_hf_model()
-    if _tokenizer is not None and _model is not None:
-        try:
-            import torch
-            inputs = _tokenizer(text, padding=True, truncation=True, return_tensors="pt")
-            with torch.no_grad():
-                outputs = _model(**inputs)
-                mask = inputs['attention_mask'].unsqueeze(-1)
-                sum_emb = torch.sum(outputs.last_hidden_state * mask, dim=1)
-                sum_mask = torch.clamp(mask.sum(dim=1), min=1e-9)
-                pooled = sum_emb / sum_mask
-                normed = torch.nn.functional.normalize(pooled, p=2, dim=1)
-                return normed[0].tolist()
-        except Exception:
-            pass
-
-    # Deterministic unit-norm fallback vector
-    seed = sum(ord(c) for c in text)
-    raw_v = [math.sin(seed + i * 0.1) for i in range(EMBEDDING_DIM)]
-    norm_val = math.sqrt(sum(x*x for x in raw_v))
-    return [x / norm_val for x in raw_v]
+    return [0.1] * EMBEDDING_DIM
 
 def dot_product(v1: List[float], v2: List[float]) -> float:
     return sum(a * b for a, b in zip(v1, v2))

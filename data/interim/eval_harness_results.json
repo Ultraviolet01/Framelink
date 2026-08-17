@@ -1,13 +1,13 @@
 {
   "eval_status": "COMPLETED",
-  "benchmark_timestamp": "2026-08-16T14:20:18Z",
+  "benchmark_timestamp": "2026-08-17T11:45:29Z",
   "total_test_cases": 20,
   "claim_narrative_accuracy": 0.75,
   "multihop_precision": 1.0,
-  "abstention_correctness": 0.75,
-  "overall_score": 0.8333,
-  "execution_time_ms": 101709.41,
-  "failure_cases_count": 10,
+  "abstention_correctness": 0.6,
+  "overall_score": 0.7833,
+  "execution_time_ms": 65401.7,
+  "failure_cases_count": 13,
   "sample_failure_cases": [
     {
       "test_id": "EVAL-01",
@@ -17,12 +17,12 @@
       "actual": "COVID-19 Immunization & Public Health Debate"
     },
     {
-      "test_id": "EVAL-03",
+      "test_id": "EVAL-02",
       "type": "abstention_failure",
-      "query": "VAERS raw reports prove tens of thousands of sudden deaths caused by vaccines",
+      "query": "mRNA vaccines alter female fertility and cause ovarian syncytin-1 damage",
       "should_abstain": false,
       "did_abstain": true,
-      "actual_verdict": "ABSTAIN_CONTRADICTORY_EVIDENCE"
+      "actual_verdict": "ABSTAIN_UNGROUNDED"
     },
     {
       "test_id": "EVAL-06",
